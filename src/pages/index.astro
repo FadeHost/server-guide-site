@@ -1,0 +1,52 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+import { site } from "../site";
+
+const pages = await getCollection("pages");
+const cards = [...pages].sort((a, b) => {
+  const order = (id: string) => {
+    const index = site.order.indexOf(id);
+    return index === -1 ? site.order.length : index;
+  };
+  return order(a.id) - order(b.id) || a.data.title.localeCompare(b.data.title);
+});
+---
+
+<Base title={site.name} description={site.tagline}>
+  <h1>{site.name}</h1>
+  <p class="tagline">{site.tagline}</p>
+
+  {
+    site.address && (
+      <div class="address">
+        <div>
+          <p class="address-label">Java address</p>
+          <code>{site.address}</code>
+          {site.bedrockAddress && (
+            <>
+              <p class="address-label" style="margin-top:12px">Bedrock address</p>
+              <code>{site.bedrockAddress}</code>
+            </>
+          )}
+        </div>
+        {site.discord && (
+          <a class="btn" href={site.discord} rel="noreferrer">
+            Join the Discord
+          </a>
+        )}
+      </div>
+    )
+  }
+
+  <div class="cards">
+    {
+      cards.map((page) => (
+        <a class="card" href={`/${page.id}/`}>
+          <span class="card-title">{page.data.title}</span>
+          {page.data.summary && <p class="card-summary">{page.data.summary}</p>}
+        </a>
+      ))
+    }
+  </div>
+</Base>

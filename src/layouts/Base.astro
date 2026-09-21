@@ -1,0 +1,62 @@
+---
+import { getCollection } from "astro:content";
+import { site } from "../site";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+
+const pages = await getCollection("pages");
+const menu = [...pages].sort((a, b) => {
+  const order = (id: string) => {
+    const index = site.order.indexOf(id);
+    return index === -1 ? site.order.length : index;
+  };
+  return order(a.id) - order(b.id) || a.data.title.localeCompare(b.data.title);
+});
+
+const here = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const pageTitle = title === site.name ? site.name : `${title} · ${site.name}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <header>
+      <div class="wrap bar">
+        <a class="brand" href="/">{site.name}</a>
+        <nav>
+          <a href="/" aria-current={here === "/" ? "page" : undefined}>Home</a>
+          {
+            menu.map((page) => (
+              <a href={`/${page.id}/`} aria-current={here === `/${page.id}` ? "page" : undefined}>
+                {page.data.title}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <slot />
+    </main>
+
+    <footer>
+      <div class="wrap">
+        Hosted on <a href="https://fadehost.com" rel="noreferrer">FadeHost</a>
+      </div>
+    </footer>
+  </body>
+</html>
